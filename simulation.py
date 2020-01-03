@@ -26,17 +26,22 @@ def prob_dissociation(alpha, beta):
     return _in_dissoc * (1 - _in_assoc)
 
 
-_x, _y, _z = (2, 2, 2)
+_x, _y, _z = (3, 3, 3)
 number_cubes = _x * _y * _z
 
 _in_assoc = 0.6  # inherent association probability
 _in_dissoc = 0.1  # inherent dissociation probability
 _valency = 3  # available sites on each molecule (a.k.a. free domains)
-_num_molecules = 3
+_num_molecules = 6
 _species = 2
 
 # each molecule is described by an index and value gives it the free bonds
 molecules = _valency * np.ones([_species, _num_molecules], dtype=object)
+molecules_bonds = np.empty([_species, _num_molecules], dtype=object)
+for i in range(_species):
+    for j in range(_num_molecules):
+        molecules_bonds[i, j] = [_valency]
+        # [ #free bonds, [number of bonds, [molecule id]], ... ]
 
 # each complex is described by an id from a set of id's
 free = set([i for i in range(_num_molecules * _species)])
@@ -77,7 +82,7 @@ def extract_molecules(x, y, z, complexes):
     for c in nearby_complexes:
         for m in complexes[c]:
             nearby_molecules[m[0]].append(m[1])
-            print('complex key:', c)
+            # print('complex key:', c)
             molecule_complex_relations[m[0], m[1]] = c
 
     return nearby_molecules, molecule_complex_relations
@@ -124,15 +129,8 @@ for i in range(_x):
                         sites[kind].append([kind, nearby_molecules[kind][index]])
                     # sites[kind].append(s*[])
 
-            print(total_sites)
-            print(sites)
-
-            if total_sites[0] < total_sites[1]:
-                smaller = 0
-                larger = 1
-            else:
-                smaller = 1
-                larger = 0
+            # print(total_sites)
+            # print(sites)
 
             prob = prob_association(total_sites[0], total_sites[1])
             p = [prob, 1 - prob]
@@ -150,29 +148,72 @@ for i in range(_x):
                         break
 
             for n in new_bonds:
-                print(n)
-                print(sites[0][n[0]])
-                print(sites[1][n[1]])
+                # print(n)
+                # print(sites[0][n[0]])
+                # print(sites[1][n[1]])
 
                 molecules[sites[0][n[0]][0], sites[0][n[0]][1]] -= 1
                 molecules[sites[1][n[1]][0], sites[1][n[1]][1]] -= 1
 
                 complex_key_a = nearby_complexes[sites[0][n[0]][0], sites[0][n[0]][1]]
                 complex_key_b = nearby_complexes[sites[1][n[1]][0], sites[1][n[1]][1]]
-                print('nearby_complexes', nearby_complexes)
+                # print('nearby_complexes', nearby_complexes)
 
                 if complex_key_a != complex_key_b:
-                    print(complexes.keys())
-                    print('complex_key_b', complexes[complex_key_b])
-                    print('complex_key_a', complexes[complex_key_a])
+                    # print(complexes.keys())
+                    # print('complex_key_b', complexes[complex_key_b])
+                    # print('complex_key_a', complexes[complex_key_a])
 
                     complexes[complex_key_a] += complexes[complex_key_b]
                     used.remove(complex_key_b)
                     free.add(complex_key_b)
                     del complexes[complex_key_b]
-
+                    cubes[i, j, k].remove(complex_key_b)
                     nearby_complexes[sites[1][n[1]][0], sites[1][n[1]][1]] = complex_key_a
                     # print(complexes[complex_key_a])
 
-            print(assoc)
+            # print(assoc)
+            print('complexes', complexes)
+            print('molecules', molecules)
+            print('cubes', cubes)
+
+            # now to do diffusion
+
+            # choose the random direction for diffusion
+            for index, c in enumerate(extract_complex(i, j, k)):
+                # print(c)
+                prob = prob_diffusion(len(complexes[c]), 0)
+                p = [prob, 1-prob]
+                if np.random.choice(2, p=p):
+                    # choose the direction
+                    dir = np.random.choice([-1, 1], size=3)
+                    new_cube = [i, j, k] + dir
+                    print('new_cube', new_cube)
+                    if np.all(new_cube < [_x, _y, _z]) and np.all(new_cube > 0) :
+                        cubes[new_cube[0], new_cube[1], new_cube[2]].append(c)
+                        # print(index)
+                        print('cubes[i,j,k]', cubes[i,j,k])
+                        cubes[i, j, k].remove(c)
+
+
+            print('cubes', cubes)
+
+            # now to do dissociation
+            # choose which complexes to dissociate
+
+            print(cubes[i, j, k])
+            for c in cubes[i, j, k]:
+                if len(complexes[c]) < 2 :
+                    continue
+                for m in c:
+                    for bond in molecules_bonds[m[0], m[1]][1:]:
+                        print(m)
+                        print(bond)
+
+                print('complex',complexes[c])
+
+
+
+
+
 # association of complexes (in each cube)
