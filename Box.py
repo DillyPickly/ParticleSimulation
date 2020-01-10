@@ -2,7 +2,8 @@ import numpy as np
 
 
 class Create:
-    def __init__(self, size_x, size_y, size_z):
+    def __init__(self, dimensions):
+        size_x, size_y, size_z = dimensions
         self.dimensions = (size_x, size_y, size_z)
         self.box = np.empty(shape=(size_x, size_y, size_z), dtype=object)
         for i in range(size_x):

@@ -4,11 +4,11 @@ import Molecule
 
 
 def test_init():
-    box = Box.Create(1, 3, 2)
+    box = Box.Create((1, 3, 2))
     print(box)
 
 def test_add_particle():
-    box = Box.Create(1, 3, 2)
+    box = Box.Create((1, 3, 2))
 
     m0 = Molecule.Create('A', 10)
     m1 = Molecule.Create('B', 2)
@@ -23,7 +23,7 @@ def test_add_particle():
     print(box)
 
 def test_move_particle():
-    box = Box.Create(1, 3, 2)
+    box = Box.Create((1, 3, 2))
 
     m0 = Molecule.Create('A', 10)
     m1 = Molecule.Create('B', 2)
