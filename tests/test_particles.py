@@ -35,11 +35,23 @@ def test_join():
     print(p0)
     print(p1)
 
+def test_join_same():
+    m0 = Molecule.Create('A', 10)
+    m1 = Molecule.Create('B', 2)
+
+    p0 = Particle.Create(m0, m1, (0, 0, 0))
+    p1 = p0
+
+    print(p0)
+    p1.join(p0)
+    print(p0)
+
+
 
 def main():
     # test_init()
-    test_join()
-
+    # test_join()
+    test_join_same()
 
 if __name__ == '__main__':
     main()

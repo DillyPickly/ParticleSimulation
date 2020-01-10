@@ -21,11 +21,16 @@ class Create:
         if self.location != particle.location:
             return ArithmeticError
 
+        if self == particle:
+            return
+
         for m in particle.moleculesA:
             self.moleculesA.append(m)
 
         for m in particle.moleculesB:
             self.moleculesB.append(m)
+
+        # particle = self
 
     def move(self, new_location):
         self.location = new_location

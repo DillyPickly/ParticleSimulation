@@ -67,51 +67,73 @@ def association(box):
     for i in range(x):
         for j in range(y):
             for k in range(z):
-                if len(box.box[i,j,k]) is 0:
+                if len(box.box[i, j, k]) is 0:
                     # print('Here, {}{}{}:'.format(i,j,k))
                     continue
 
-                A_molecules = []
-                A_sites = 0
-                B_molecules = []
-                B_sites = 0
+                A_sites = []
+                B_sites = []
 
                 for particle in box.box[i, j, k]:
+
                     for moleculeA in particle.moleculesA:
-
-                        if moleculeA.bond <= 0:
+                        if moleculeA.bonds <= 0:
                             continue
-
-                        A_molecules.append([moleculeA, particle])
-                        A_sites += moleculeA.bond
+                        A_sites.extend(moleculeA.bonds * [[moleculeA, particle]])
 
                     for moleculeB in particle.moleculesB:
-
-                        if moleculeB.bond <= 0:
+                        if moleculeB.bonds <= 0:
                             continue
-
-                        B_molecules.append([moleculeB, particle])
-                        B_sites += moleculeB.bond
+                        B_sites.extend(moleculeB.bonds * [[moleculeB, particle]])
 
                 if B_sites == 0 or A_sites == 0:
                     continue
 
-                prob = prob_association(A_sites, B_sites)
+                np.random.shuffle(A_sites)
+                np.random.shuffle(B_sites)
+
+                prob = prob_association(len(A_sites), len(B_sites))
                 p = [prob, 1 - prob]
-                # assoc = np.random.choice(2, total_sites, p=p)
-                #
-                # if A_sites < B_sites:
-                #     for m_a in A_molecules:
-                #         for b in m_a[0].bonds:
-                #
-                # else:
 
+                if len(A_sites) < len(B_sites):
+                    for a_site in A_sites:
+                        for b_index in range(len(B_sites)):
+                            assoc = np.random.choice(2, p=p)
+                            if assoc:
+                                b_site = B_sites.pop(b_index)
+                                a_site[0].bonds -= 1
+                                b_site[0].bonds -= 1
+                                # decrement the number of bonds on each molecule
 
+                                if a_site[1] != b_site[1]:
+                                    box.box[i, j, k].remove(b_site[1])
+                                    b_site[1] = a_site[1]
 
+                                a_site[1].join(b_site[1])
 
+                                break
+                else:
+                    for b_site in B_sites:
+                        for a_index in range(len(A_sites)):
+                            assoc = np.random.choice(2, p=p)
+                            if assoc:
+                                a_site = A_sites.pop(a_index)
+                                b_site[0].bonds -= 1
+                                a_site[0].bonds -= 1
+                                # decrement the number of bonds on each molecule
 
+                                if a_site[1] != b_site[1]:
+                                    print(a_site[1])
+                                    print(box.box[i, j, k])
+                                    box.box[i, j, k].remove(a_site[1])
+                                    a_site[1] = b_site[1]
 
+                                b_site[1].join(a_site[1])
+
+                                break
     return box
+
+
 # TODO def diffusion
 
 # TODO def dissociation
@@ -122,6 +144,7 @@ def main():
     # print(b)
     a = association(b)
     # print(a)
+
 
 if __name__ == '__main__':
     main()
