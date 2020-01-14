@@ -21,7 +21,7 @@ _in_dissoc = 0.1  # inherent dissociation probability
 
 _valency = 3  # available sites on each molecule (a.k.a. free domains)
 _num_A_molecules = 6
-_num_B_molecules = 10
+_num_B_molecules = 15
 _box_dimensions = (3, 3, 3)
 
 
@@ -77,14 +77,14 @@ def association(box):
                 for particle in box.box[i, j, k]:
 
                     for moleculeA in particle.moleculesA:
-                        if moleculeA.bonds <= 0:
+                        if moleculeA.full():
                             continue
-                        A_sites.extend(moleculeA.bonds * [[moleculeA, particle]])
+                        A_sites.extend(moleculeA.n_empty() * [[moleculeA, particle]])
 
                     for moleculeB in particle.moleculesB:
-                        if moleculeB.bonds <= 0:
+                        if moleculeB.full():
                             continue
-                        B_sites.extend(moleculeB.bonds * [[moleculeB, particle]])
+                        B_sites.extend(moleculeB.n_empty() * [[moleculeB, particle]])
 
                 if B_sites == 0 or A_sites == 0:
                     continue
@@ -101,8 +101,7 @@ def association(box):
                             assoc = np.random.choice(2, p=p)
                             if assoc:
                                 b_site = B_sites.pop(b_index)
-                                a_site[0].bonds -= 1
-                                b_site[0].bonds -= 1
+                                b_site[0].join(a_site[0])
                                 # decrement the number of bonds on each molecule
 
                                 if a_site[1] != b_site[1]:
@@ -118,8 +117,7 @@ def association(box):
                             assoc = np.random.choice(2, p=p)
                             if assoc:
                                 a_site = A_sites.pop(a_index)
-                                b_site[0].bonds -= 1
-                                a_site[0].bonds -= 1
+                                a_site[0].join(b_site[0])
                                 # decrement the number of bonds on each molecule
 
                                 if a_site[1] != b_site[1]:
@@ -135,15 +133,51 @@ def association(box):
 
 
 # TODO def diffusion
+def diffusion(box):
+    new_box = Box.Create(_box_dimensions)
+
+    x, y, z = _box_dimensions
+    for i in range(x):
+        for j in range(y):
+            for k in range(z):
+                if len(box.box[i, j, k]) is 0:
+                    # print('Here, {}{}{}:'.format(i,j,k))
+                    continue
+
+                print("here0")
+                for particle in box.box[i, j, k]:
+                    prob = prob_diffusion(len(particle.moleculesA), len(particle.moleculesB))
+                    p = [prob, 1 - prob]
+                    diffuse = np.random.choice([1, 0], p=p)
+
+                    if not diffuse:
+                        new_box.add_particle(particle)
+
+                    else:
+                        new_x, new_y, new_z = np.random.choice([-1, 1], size=3, p=p)
+                        try:
+                            print('here1')
+                            print((i+new_x, j+new_y, k+new_z))
+                            particle.move((i+new_x, j+new_y, k+new_z))
+                            new_box.add_particle(particle)
+
+                        except IndexError:
+                            print("here2")
+                            pass
+    return new_box
+
+
+
 
 # TODO def dissociation
 
 
 def main():
     b = initialize_simulation();
-    # print(b)
+    print(b)
     a = association(b)
-    # print(a)
+    # a = diffusion(b)
+    print(a)
 
 
 if __name__ == '__main__':
