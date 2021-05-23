@@ -8,7 +8,7 @@ There will be two types of particles. The particles will have an affinity for ot
 ## Usage
 Move this project to a remote computer
 ``` 
-rsync -av -e ssh --exclude="data" ~/Projects/particle-simulation-by-vote 192.168.1.172:~/Projects/ 
+rsync -av -e ssh --exclude="data" <source_destination> <remote_address>:<remote_destination> 
 ```
 
 Run the project on a remote server
@@ -18,12 +18,12 @@ python runner.py 512 150 <optional_name_arg>
 
 Move the data directory to local machine to see results
 ```
-rsync -av -e ssh ~/Projects/particle-simulation-by-vote/data/ 192.168.1.159:~/Projects/particle-simulation-by-vote/data/
+rsync -av -e ssh <source_destination> <remote_address>:<remote_destination>
 ```
 
 Convert images to video from the directory with the images
 ```
-ffmpeg -framerate 10 -i "%03d.png" -vf "scale=2*trunc(iw):-2,setsar=1,format=yuv420p" -c:v libx264 -preset medium -tune stillimage -crf 18 -c:a aac -shortest "outputVideo.mp4"
+ffmpeg -framerate 10 -i "%03d.png" -vf "scale=2*trunc(iw):-2,setsar=1,format=yuv420p" -c:v libx264 -preset medium -tune stillimage -crf 18 -c:a aac -shortest "<output_file>.mp4"
 ```
 
 # Structure
